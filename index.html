@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SplitWise — Local Group Expense Tracker</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+              800: '#3730A3',
+              900: '#312E81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- jsPDF & autoTable for Client-Side PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Canvas Confetti for Celebration on Debt Settlement -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ============================================================= -->
+  <!-- Top Application Navbar -->
+  <!-- ============================================================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-4">
+        
+        <!-- Logo & Brand -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-black text-xl shadow-md shadow-indigo-100 flex-shrink-0">
+            ⚖️
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-lg text-slate-900 tracking-tight">SplitWise</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                100% Local
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Private browser storage · No server required</p>
+          </div>
+        </div>
+
+        <!-- Center: Active Group Switcher -->
+        <div class="flex items-center gap-2">
+          <label for="header-group-select" class="text-xs font-semibold text-slate-500 hidden md:block">Group:</label>
+          <div class="relative">
+            <select id="header-group-select" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold py-2 pl-3 pr-8 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Right: Perspective Switcher & Actions -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- "You" Perspective Selector -->
+          <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+            <div id="header-user-avatar" class="flex-shrink-0">
+              <!-- Dynamically populated avatar -->
+            </div>
+            <div class="hidden sm:block">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block leading-tight">Viewing As</span>
+              <select id="header-user-select" class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Add Expense Button (Primary Action) -->
+          <button onclick="window.app.openAddExpenseModal()" class="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-indigo-100 transition">
+            <span class="text-base leading-none">+</span>
+            <span class="hidden sm:inline">Add Expense</span>
+            <span class="sm:hidden">Add</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Navigation Tabs Bar -->
+    <div class="bg-white border-t border-slate-100 overflow-x-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex gap-2 sm:gap-6 -mb-px text-xs sm:text-sm font-semibold text-slate-500 whitespace-nowrap" id="app-tabs">
+          <button class="nav-tab-btn py-3 px-2 border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-1.5 transition" data-tab="dashboard">
+            <span>📊</span> Overview
+          </button>
+          <button class="nav-tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-1.5 transition" data-tab="expenses">
+            <span>🧾</span> Expenses
+          </button>
+          <button class="nav-tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-1.5 transition" data-tab="balances">
+            <span>⚖️</span> Balances & Settle Up
+          </button>
+          <button class="nav-tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-1.5 transition" data-tab="members">
+            <span>👥</span> Members & Photos
+          </button>
+          <button class="nav-tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-1.5 transition" data-tab="settings">
+            <span>⚙️</span> Settings & Export
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================= -->
+  <!-- Main Content View Area -->
+  <!-- ============================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- Tab 1: Dashboard / Overview -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-pane-dashboard" class="tab-pane space-y-6">
+      
+      <!-- Top Group Hero Header -->
+      <div class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-indigo-100 mb-3 border border-white/10">
+            <span>Active Group</span>
+          </div>
+          <h1 id="dash-group-title" class="text-2xl sm:text-3xl font-black tracking-tight">Group Name</h1>
+          <p id="dash-group-desc" class="text-indigo-100 text-sm mt-1 max-w-xl">Group description</p>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+          <button onclick="window.app.openAddExpenseModal()" class="px-4 py-2.5 bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-sm rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2">
+            <span>+</span> Add Expense
+          </button>
+          <button onclick="window.app.openSettleModal()" class="px-4 py-2.5 bg-indigo-500/40 hover:bg-indigo-500/60 border border-white/20 text-white font-bold text-sm rounded-xl transition active:scale-95 flex items-center gap-2">
+            <span>✓</span> Settle Up
+          </button>
+          
+          <!-- Export Quick Actions -->
+          <div class="flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden">
+            <button id="btn-export-pdf" title="Export PDF Report" class="px-3 py-2.5 hover:bg-white/20 text-xs font-bold transition flex items-center gap-1.5">
+              <span>📄</span> PDF
+            </button>
+            <div class="w-px h-5 bg-white/20"></div>
+            <button id="btn-export-csv" title="Export CSV Spreadsheet" class="px-3 py-2.5 hover:bg-white/20 text-xs font-bold transition flex items-center gap-1.5">
+              <span>📊</span> CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Metrics Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <!-- Total Group Spend -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider">Total Spent</span>
+            <span class="text-lg">💰</span>
+          </div>
+          <div id="dash-total-spend" class="text-2xl font-black text-slate-900">$0.00</div>
+          <span class="text-xs text-slate-400 mt-1 block">Across all group members</span>
+        </div>
+
+        <!-- Personal Net Balance -->
+        <div id="dash-my-balance-card" class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider">Your Balance</span>
+            <span class="text-lg">👤</span>
+          </div>
+          <div id="dash-my-balance" class="text-2xl font-black text-slate-900">$0.00</div>
+          <span id="dash-my-balance-sub" class="text-xs text-slate-400 mt-1 block">Based on active perspective</span>
+        </div>
+
+        <!-- Total Expenses -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider">Total Expenses</span>
+            <span class="text-lg">🧾</span>
+          </div>
+          <div id="dash-expenses-count" class="text-2xl font-black text-slate-900">0</div>
+          <span class="text-xs text-slate-400 mt-1 block">Recorded in ledger</span>
+        </div>
+
+        <!-- Total Members -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider">Group Size</span>
+            <span class="text-lg">👥</span>
+          </div>
+          <div id="dash-members-count" class="text-2xl font-black text-slate-900">0</div>
+          <span class="text-xs text-slate-400 mt-1 block">Participating members</span>
+        </div>
+      </div>
+
+      <!-- 2-Column Split: Suggested Settlements + Recent Expenses -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Who Owes Whom (Debt Simplification) -->
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Who Owes Whom</h3>
+                <p class="text-xs text-slate-400">Minimal settlement transfers calculated automatically</p>
+              </div>
+              <button onclick="window.app.switchTab('balances')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">
+                View All Balances ➔
+              </button>
+            </div>
+            <div id="dash-debt-list" class="space-y-2.5">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Recent Expenses Feed -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Recent Expenses</h3>
+                <p class="text-xs text-slate-400">Latest shared transactions</p>
+              </div>
+              <button onclick="window.app.switchTab('expenses')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">
+                View Ledger ➔
+              </button>
+            </div>
+            <div id="dash-recent-expenses">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Category Breakdown & Quick Info -->
+        <div class="space-y-6">
+          <!-- Category Spending Breakdown -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 mb-1">Spending by Category</h3>
+            <p class="text-xs text-slate-400 mb-4">Expense distribution</p>
+            <div id="dash-category-breakdown">
+              <!-- Dynamically populated progress bars -->
+            </div>
+          </div>
+
+          <!-- Quick Tips Card -->
+          <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 text-indigo-900">
+            <div class="flex items-center gap-2 mb-2 font-bold text-sm text-indigo-950">
+              <span>💡</span> Offline & Local Storage
+            </div>
+            <p class="text-xs text-indigo-800/90 leading-relaxed">
+              Every expense, profile picture, and group detail is securely saved inside your browser's local storage. You can safely close or refresh this page, or export a <strong>PDF</strong> or <strong>CSV</strong> report anytime.
+            </p>
+            <button onclick="window.app.switchTab('settings')" class="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-800 underline">
+              Manage Backups & Settings
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- Tab 2: Expenses List & Filters -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-pane-expenses" class="tab-pane hidden space-y-6">
+      
+      <!-- Top Action Bar & Filter Strip -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <input type="text" id="expense-search-input" placeholder="Search expenses by title or notes..."
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+          <span class="absolute left-3 top-3 text-slate-400 text-sm">🔍</span>
+        </div>
+
+        <!-- Filters & Add Button -->
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- Category Filter -->
+          <select id="expense-filter-category" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+            <option value="all">All Categories</option>
+          </select>
+
+          <!-- Member Filter -->
+          <select id="expense-filter-member" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+            <option value="all">All Members</option>
+          </select>
+
+          <!-- Add Expense Button -->
+          <button onclick="window.app.openAddExpenseModal()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95">
+            <span>+</span> Add Expense
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Expenses Ledger List -->
+      <div id="expenses-list-container">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- Tab 3: Balances & Settle Up -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-pane-balances" class="tab-pane hidden space-y-8">
+      
+      <!-- Member Net Balances Overview -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Member Net Balances</h2>
+            <p class="text-xs text-slate-400">Total out-of-pocket paid vs. each member's owed share</p>
+          </div>
+          <button onclick="window.app.openSettleModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
+            + Record Custom Settlement
+          </button>
+        </div>
+        <div id="balances-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Simplified Settlement Transfers -->
+      <div>
+        <div class="mb-4">
+          <h2 class="text-xl font-bold text-slate-900">Simplified Settlement Plan</h2>
+          <p class="text-xs text-slate-400">Optimal minimum transfers to square all balances completely</p>
+        </div>
+        <div id="simplified-debts-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Past Settlements History -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+        <h3 class="text-base font-bold text-slate-900 mb-1">Settlement Ledger</h3>
+        <p class="text-xs text-slate-400 mb-4">History of all settled payments in this group</p>
+        <div id="settlements-history-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- Tab 4: Members & Profiles -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-pane-members" class="tab-pane hidden space-y-6">
+      
+      <!-- Top Member Action Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Group Members & Profiles</h2>
+          <p class="text-xs text-slate-400">Upload profile pictures, manage members, and track individual contributions</p>
+        </div>
+        <button onclick="window.app.openAddMemberModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95">
+          <span>+</span> Add Member
+        </button>
+      </div>
+
+      <!-- Members Grid -->
+      <div id="members-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Dynamically rendered -->
+      </div>
+
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- Tab 5: Settings, Export & Backups -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-pane-settings" class="tab-pane hidden space-y-8 max-w-4xl">
+      
+      <!-- Export Options Section -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-900 mb-1">Export Expense Reports</h3>
+        <p class="text-xs text-slate-400 mb-6">Download your group records in portable formats</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- PDF Card -->
+          <div class="border border-slate-200 rounded-2xl p-5 hover:border-indigo-500 transition">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-3xl">📄</span>
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">Download PDF Report</h4>
+                <p class="text-xs text-slate-500">Formatted summary, balances & full expense ledger</p>
+              </div>
+            </div>
+            <button onclick="window.ExpenseExporter.exportToPDF(window.store.getCurrentGroup())" class="mt-4 w-full py-2.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition">
+              Download PDF Report
+            </button>
+          </div>
+
+          <!-- CSV Card -->
+          <div class="border border-slate-200 rounded-2xl p-5 hover:border-emerald-500 transition">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-3xl">📊</span>
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">Export to CSV Spreadsheet</h4>
+                <p class="text-xs text-slate-500">Compatible with Microsoft Excel, Apple Numbers, Google Sheets</p>
+              </div>
+            </div>
+            <button onclick="window.ExpenseExporter.exportToCSV(window.store.getCurrentGroup())" class="mt-4 w-full py-2.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl text-xs font-bold transition">
+              Download CSV Spreadsheet
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- JSON Backup & Restore -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-900 mb-1">Browser Storage Backup & Restore</h3>
+        <p class="text-xs text-slate-400 mb-6">Backup all groups, members, and expenses into a single JSON file, or restore on another device</p>
+
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <button id="btn-export-backup" class="w-full sm:w-auto px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2">
+            <span>💾</span> Export JSON Backup
+          </button>
+
+          <label class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-200 cursor-pointer text-center transition flex items-center justify-center gap-2">
+            <span>📂</span> Import Backup File
+            <input type="file" id="input-import-backup" accept=".json" class="hidden">
+          </label>
+
+          <button id="btn-reset-demo" class="w-full sm:w-auto px-5 py-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-bold transition">
+            Reload Demo Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Manage Groups List -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Manage Groups</h3>
+            <p class="text-xs text-slate-400">Switch active groups or create a new one</p>
+          </div>
+          <button onclick="window.app.openNewGroupModal()" class="px-3.5 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm">
+            + New Group
+          </button>
+        </div>
+        <div id="settings-groups-list" class="space-y-3">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ============================================================= -->
+  <!-- MODAL: Add / Edit Expense -->
+  <!-- ============================================================= -->
+  <div id="modal-expense" class="modal-backdrop">
+    <div class="modal-card p-6 sm:p-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <h3 id="modal-expense-title" class="text-lg font-bold text-slate-900">Add New Expense</h3>
+        <button data-close-modal class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none">&times;</button>
+      </div>
+
+      <form id="expense-form" class="space-y-4">
+        <input type="hidden" id="expense-id">
+
+        <!-- Title -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Expense Title *</label>
+          <input type="text" id="expense-title" placeholder="e.g. Dinner, Uber, Hotel stay, Groceries" required
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Amount & Category Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Total Amount *</label>
+            <input type="number" step="0.01" min="0.01" id="expense-amount" placeholder="0.00" required
+              class="w-full px-3.5 py-2.5 text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
+            <select id="expense-category" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="Food & Dining">🍕 Food & Dining</option>
+              <option value="Transportation">🚗 Transportation</option>
+              <option value="Accommodation">🏠 Accommodation</option>
+              <option value="Groceries">🛒 Groceries</option>
+              <option value="Entertainment">🎟️ Entertainment</option>
+              <option value="Shopping">🛍️ Shopping</option>
+              <option value="Utilities">💡 Utilities</option>
+              <option value="Other">📦 Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Paid By & Date Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Paid By *</label>
+            <select id="expense-paid-by" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Date</label>
+            <input type="date" id="expense-date" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <!-- Split Method Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Split Method</label>
+          <select id="expense-split-type" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-indigo-700">
+            <option value="equal">Split Equally (=)</option>
+            <option value="exact">Split by Exact Amounts ($)</option>
+            <option value="percentage">Split by Percentages (%)</option>
+            <option value="shares">Split by Shares (Ratios)</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Split Breakdown Inputs -->
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Split Details</label>
+          <div id="expense-splits-container">
+            <!-- Dynamically populated per split method -->
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Notes (Optional)</label>
+          <input type="text" id="expense-notes" placeholder="Additional details, location, etc."
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" data-close-modal class="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition">
+            Save Expense
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL: Add / Edit Member Profile & Picture -->
+  <!-- ============================================================= -->
+  <div id="modal-member" class="modal-backdrop">
+    <div class="modal-card p-6 sm:p-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <h3 id="modal-member-title" class="text-lg font-bold text-slate-900">Member Profile</h3>
+        <button data-close-modal class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none">&times;</button>
+      </div>
+
+      <form id="member-form" class="space-y-5">
+        <input type="hidden" id="member-id">
+
+        <!-- Profile Picture Upload & Live Preview -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Profile Picture</label>
+          <div class="flex items-center gap-5">
+            <div id="member-photo-preview" class="w-20 h-20 rounded-full border-2 border-slate-200 flex-shrink-0 overflow-hidden bg-slate-100 shadow-inner">
+              <!-- Live Preview -->
+            </div>
+
+            <div class="space-y-2">
+              <label class="inline-flex items-center px-3.5 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-bold cursor-pointer transition">
+                <span>📷 Upload Photo</span>
+                <input type="file" id="member-photo-input" accept="image/*" class="hidden">
+              </label>
+              <button type="button" id="btn-remove-photo" class="block text-xs text-rose-500 hover:text-rose-700 font-semibold">
+                Remove Picture
+              </button>
+              <p class="text-[11px] text-slate-400">Compressed & saved locally in your browser.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Name -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
+          <input type="text" id="member-name" placeholder="e.g. Alex Morgan" required
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Phone (Optional)</label>
+          <input type="text" id="member-email" placeholder="e.g. alex@example.com"
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Avatar Background Color (Fallback initials badge) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Initials Badge Color</label>
+          <input type="color" id="member-color" value="#4F46E5"
+            class="h-10 w-20 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" data-close-modal class="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition">
+            Save Member
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL: Settle Up (Record Payment) -->
+  <!-- ============================================================= -->
+  <div id="modal-settle" class="modal-backdrop">
+    <div class="modal-card p-6 sm:p-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <h3 class="text-lg font-bold text-slate-900">Record Settlement Payment</h3>
+        <button data-close-modal class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none">&times;</button>
+      </div>
+
+      <form id="settle-form" class="space-y-4">
+        <!-- Payer & Receiver -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Who is Paying? *</label>
+            <select id="settle-from" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Who is Receiving? *</label>
+            <select id="settle-to" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Amount & Date -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Amount *</label>
+            <input type="number" step="0.01" min="0.01" id="settle-amount" placeholder="0.00" required
+              class="w-full px-3.5 py-2.5 text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Date</label>
+            <input type="date" id="settle-date" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Payment Method</label>
+          <select id="settle-method" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="UPI">📱 UPI (Google Pay / PhonePe / Paytm)</option>
+            <option value="Cash">💵 Cash</option>
+            <option value="Bank Transfer">🏦 Bank Transfer (NEFT / IMPS / Wire)</option>
+            <option value="Venmo">💳 Venmo / Zelle</option>
+            <option value="PayPal">🅿️ PayPal</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Notes / Transaction ID</label>
+          <input type="text" id="settle-notes" placeholder="e.g. Paid via GPay"
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" data-close-modal class="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition">
+            Confirm Settlement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL: Create New Group -->
+  <!-- ============================================================= -->
+  <div id="modal-group" class="modal-backdrop">
+    <div class="modal-card p-6 sm:p-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <h3 class="text-lg font-bold text-slate-900">Create New Group</h3>
+        <button data-close-modal class="text-slate-400 hover:text-slate-600 text-xl font-bold leading-none">&times;</button>
+      </div>
+
+      <form id="group-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Group Name *</label>
+          <input type="text" id="group-name" placeholder="e.g. Road Trip, Roommates, Office Lunch" required
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Currency Symbol</label>
+          <input type="text" id="group-currency" value="$" maxlength="5"
+            class="w-full px-3.5 py-2.5 text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Description (Optional)</label>
+          <textarea id="group-description" rows="2" placeholder="Brief note about this group..."
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" data-close-modal class="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition">
+            Create Group
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/sample-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

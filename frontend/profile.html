@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — SplitWise</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="navbar-brand">
+        <div class="brand-icon">💳</div>
+        SplitWise
+      </a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="btn btn-ghost btn-sm">Dashboard</a>
+        <a href="profile.html" class="navbar-user-link">
+          <div id="nav-avatar-container">
+            <div class="user-avatar" id="nav-avatar">U</div>
+          </div>
+          <span class="user-name" id="nav-username">User</span>
+        </a>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+
+      <div class="page-header" style="margin-top:0.5rem">
+        <div>
+          <h1 class="page-title">My Profile & Settings</h1>
+          <p class="page-subtitle">Manage your account details, photo, and notifications</p>
+        </div>
+      </div>
+
+      <div class="profile-grid">
+        <!-- Left Column: Profile Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Profile Information</h2>
+          </div>
+          <div class="card-body">
+            <div id="profile-alert" style="display:none"></div>
+
+            <!-- Avatar Upload Area -->
+            <div class="avatar-upload-wrapper" id="avatar-wrapper" title="Click to change photo">
+              <div id="profile-avatar-container">
+                <div class="user-avatar avatar-xl" id="profile-avatar">U</div>
+              </div>
+              <div class="avatar-upload-overlay">
+                <span>📷</span>
+                Change
+              </div>
+              <input type="file" id="avatar-input" accept="image/*" style="display:none" />
+            </div>
+
+            <p style="text-align:center;font-size:0.8rem;color:var(--gray-500);margin-bottom:1.5rem">
+              Click photo to upload a new avatar (JPG, PNG)
+            </p>
+
+            <form id="profile-form">
+              <div class="form-group">
+                <label class="form-label" for="profile-username">Username</label>
+                <input type="text" id="profile-username" class="form-control" disabled readonly />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="profile-email">Email Address</label>
+                <input type="email" id="profile-email" class="form-control" disabled readonly />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="profile-bio">Bio</label>
+                <textarea
+                  id="profile-bio"
+                  class="form-control"
+                  rows="3"
+                  maxlength="200"
+                  placeholder="Tell your group a bit about yourself…"
+                ></textarea>
+                <small style="display:block;text-align:right;color:var(--gray-400);margin-top:0.25rem" id="bio-count">0/200</small>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="save-profile-btn" style="width:100%">
+                Save Profile
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right Column: Email Notifications Settings -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Email Notifications</h2>
+          </div>
+          <div class="card-body">
+            <p style="font-size:0.875rem;color:var(--gray-600);margin-bottom:1.5rem">
+              Manage what events trigger automated email notifications to your inbox.
+            </p>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <div class="toggle-title">New Expense Added</div>
+                <p class="toggle-desc">Receive an email when someone adds an expense involving you</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notify-expense" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <div class="toggle-title">Group Invitations</div>
+                <p class="toggle-desc">Receive an email when you are added to an expense group</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notify-group" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <div class="toggle-title">Debt Settlements</div>
+                <p class="toggle-desc">Receive an email when a payment is settled between members</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notify-settle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div style="margin-top:2rem">
+              <button type="button" class="btn btn-secondary" id="save-notify-btn" style="width:100%">
+                Save Notification Preferences
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

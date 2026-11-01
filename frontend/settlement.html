@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settlements — SplitWise</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="navbar-brand">
+        <div class="brand-icon">💳</div>
+        SplitWise
+      </a>
+      <div class="navbar-nav">
+        <a href="profile.html" class="navbar-user-link" title="My Profile & Settings">
+          <div id="nav-avatar-container">
+            <div class="user-avatar" id="nav-avatar">U</div>
+          </div>
+          <span class="user-name" id="nav-username">User</span>
+        </a>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <a href="#" id="back-link" class="back-link">← Back to Group</a>
+
+      <div class="page-header" style="margin-top:0.5rem">
+        <div>
+          <h1 class="page-title">Settlements</h1>
+          <p class="page-subtitle">
+            Group: <strong id="group-name">…</strong>
+          </p>
+        </div>
+        <button class="btn btn-secondary" onclick="loadSettlements()">
+          ↺ Refresh
+        </button>
+      </div>
+
+      <!-- Two columns on desktop, stacked on mobile -->
+      <div class="grid grid-2" style="align-items:start;gap:1.5rem">
+
+        <!-- Balances -->
+        <div>
+          <div class="section-header" style="margin-bottom:1rem">
+            <h3 class="section-title">💰 Member Balances</h3>
+          </div>
+          <div id="balance-container">
+            <div class="loading-overlay">
+              <div class="loading-spinner" style="width:28px;height:28px;border-width:2.5px"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:1rem;padding:0.75rem;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200)">
+            <p style="font-size:0.8rem;color:var(--gray-500);margin:0;line-height:1.5">
+              <strong style="color:var(--success)">Green</strong> = this member is owed money &nbsp;·&nbsp;
+              <strong style="color:var(--danger)">Red</strong> = this member owes money
+            </p>
+          </div>
+        </div>
+
+        <!-- Who Owes Whom -->
+        <div>
+          <div class="section-header" style="margin-bottom:1rem">
+            <h3 class="section-title">🔄 Who Owes Whom</h3>
+          </div>
+          <div id="transactions-container">
+            <div class="loading-overlay">
+              <div class="loading-spinner" style="width:28px;height:28px;border-width:2.5px"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/settlement.js"></script>
+</body>
+</html>

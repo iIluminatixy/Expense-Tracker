@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — SplitWise</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="navbar-brand">
+        <div class="brand-icon">💳</div>
+        SplitWise
+      </a>
+      <div class="navbar-nav">
+        <a href="profile.html" class="navbar-user-link" title="My Profile & Settings">
+          <div id="nav-avatar-container">
+            <div class="user-avatar" id="nav-avatar">U</div>
+          </div>
+          <span class="user-name" id="nav-username">User</span>
+        </a>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">My Groups</h1>
+          <p class="page-subtitle">Manage your shared expense groups</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+          + New Group
+        </button>
+      </div>
+
+      <!-- Groups Container -->
+      <div id="groups-container">
+        <div class="loading-overlay">
+          <div class="loading-spinner" style="width:36px;height:36px;border-width:3px"></div>
+          <span>Loading groups…</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create Group Modal -->
+  <div class="modal-overlay" id="create-group-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Create New Group</h3>
+        <button class="modal-close" onclick="closeModal('create-group-modal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="create-group-alert" style="display:none"></div>
+        <form id="create-group-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="group-name">
+              Group Name <span style="color:var(--danger)">*</span>
+            </label>
+            <input
+              type="text"
+              id="group-name"
+              class="form-control"
+              placeholder="e.g. Weekend Trip, Roommates"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="group-desc">Description</label>
+            <textarea
+              id="group-desc"
+              class="form-control"
+              placeholder="What is this group for?"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="modal-footer" style="padding:0;border:none;margin-top:1rem">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('create-group-modal')">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Create Group
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Member Modal -->
+  <div class="modal-overlay" id="add-member-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Member to <span id="add-member-group-name" style="color:var(--primary)"></span></h3>
+        <button class="modal-close" onclick="closeModal('add-member-modal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="add-member-alert" style="display:none"></div>
+        <form id="add-member-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="member-username">Username</label>
+            <input
+              type="text"
+              id="member-username"
+              class="form-control"
+              placeholder="Enter username to add"
+              required
+            />
+            <div class="form-hint">The user must already have a SplitWise account.</div>
+          </div>
+          <div class="modal-footer" style="padding:0;border:none;margin-top:1rem">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('add-member-modal')">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Add Member
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Close modals on overlay click -->
+  <script>
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+      });
+    });
+  </script>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

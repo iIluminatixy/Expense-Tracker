@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Expense — SplitWise</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="dashboard.html" class="navbar-brand">
+        <div class="brand-icon">💳</div>
+        SplitWise
+      </a>
+      <div class="navbar-nav">
+        <a href="profile.html" class="navbar-user-link" title="My Profile & Settings">
+          <div id="nav-avatar-container">
+            <div class="user-avatar" id="nav-avatar">U</div>
+          </div>
+          <span class="user-name" id="nav-username">User</span>
+        </a>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container" style="max-width:680px">
+      <a href="#" id="back-link" class="back-link">← Back to Group</a>
+
+      <div class="page-header" style="margin-top:0.5rem;margin-bottom:1.5rem">
+        <div>
+          <h1 class="page-title">Add Expense</h1>
+          <p class="page-subtitle">
+            Group: <strong id="group-name-display">…</strong>
+          </p>
+        </div>
+      </div>
+
+      <div id="form-container">
+        <div class="card">
+          <div class="card-body">
+            <div id="form-alert" style="display:none"></div>
+
+            <form id="add-expense-form" novalidate>
+              <!-- Expense Title -->
+              <div class="form-group">
+                <label class="form-label" for="expense-title">
+                  Expense Title <span style="color:var(--danger)">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="expense-title"
+                  class="form-control"
+                  placeholder="e.g. Dinner at restaurant"
+                  required
+                />
+              </div>
+
+              <!-- Amount & Date Row -->
+              <div class="grid grid-2" style="gap:1rem">
+                <div class="form-group">
+                  <label class="form-label" for="expense-amount">
+                    Amount (₹) <span style="color:var(--danger)">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="expense-amount"
+                    class="form-control"
+                    placeholder="0.00"
+                    min="0.01"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="expense-date">
+                    Date <span style="color:var(--danger)">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="expense-date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Paid By -->
+              <div class="form-group">
+                <label class="form-label" for="paid-by">
+                  Paid By <span style="color:var(--danger)">*</span>
+                </label>
+                <select id="paid-by" class="form-control" required>
+                  <option value="">Loading members…</option>
+                </select>
+              </div>
+
+              <hr class="divider" />
+
+              <!-- Split Type -->
+              <div class="form-group">
+                <label class="form-label">Split Type</label>
+                <div style="display:flex;gap:1rem;flex-wrap:wrap">
+                  <label class="radio-option" style="flex:1;min-width:120px">
+                    <input type="radio" name="split-type" value="equal" checked />
+                    <span>⚖️ Equal Split</span>
+                  </label>
+                  <label class="radio-option" style="flex:1;min-width:120px">
+                    <input type="radio" name="split-type" value="custom" />
+                    <span>✏️ Custom Split</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Equal Split: Participant Checkboxes -->
+              <div id="equal-split-section">
+                <div class="form-group">
+                  <label class="form-label">Select Participants</label>
+                  <div id="participants-container" class="participants-list">
+                    <div class="loading-spinner" style="width:20px;height:20px;border-width:2px"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Custom Split: Input Table -->
+              <div id="custom-split-section" style="display:none">
+                <div class="form-group">
+                  <label class="form-label">Enter Each Person's Share</label>
+                  <table class="splits-table">
+                    <thead>
+                      <tr>
+                        <th>Member</th>
+                        <th>Amount Owed (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="custom-splits-body">
+                      <!-- Populated by JS -->
+                    </tbody>
+                  </table>
+
+                  <div class="sum-row" id="sum-container">
+                    <span>Total entered:</span>
+                    <span class="sum-value">₹ <span id="custom-split-sum">0.00</span></span>
+                  </div>
+                  <p class="form-hint" style="text-align:right">
+                    Must equal the expense amount exactly.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
+                <a id="cancel-btn" href="#" class="btn btn-secondary" id="back-link2">Cancel</a>
+                <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
+                  Add Expense
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/add-expense.js"></script>
+  <script>
+    // Set cancel button href to group page
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const gid = params.get('group');
+      const cancelBtn = document.getElementById('cancel-btn');
+      if (cancelBtn && gid) cancelBtn.href = `group.html?id=${gid}`;
+    });
+  </script>
+</body>
+</html>
